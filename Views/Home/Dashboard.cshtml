@@ -1,0 +1,86 @@
+@model SmartMosquitoControl.Controllers.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="page-card mobile-shell dashboard-shell">
+    <div class="dashboard-status">
+        <span class="status-time">9:41</span>
+        <div class="status-icons" aria-hidden="true">
+            <span>◉</span>
+            <span>▣</span>
+        </div>
+    </div>
+
+    <div class="dashboard-topbar">
+        <div class="profile-pill">
+            <span class="profile-avatar">L</span>
+        </div>
+        <div class="profile-meta">
+            <span class="welcome-line">Good evening</span>
+            <strong>@(Model.Device.Name.Split(' ')[0])</strong>
+        </div>
+        <a asp-action="Notifications" class="notification-button" aria-label="Notifications">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5" />
+                <path d="M10 20a2 2 0 0 0 4 0" />
+            </svg>
+            <span class="notification-dot" aria-hidden="true"></span>
+        </a>
+    </div>
+
+    <div class="device-card">
+        <div class="device-card-top">
+            <div class="device-badge"></div>
+            <div class="device-info">
+                <div class="device-name">@Model.Device.Name</div>
+                <div class="device-status online">● @(Model.Device.IsOnline ? "Online" : "Offline")</div>
+            </div>
+            <div class="chevron">›</div>
+        </div>
+    </div>
+
+    <div class="device-circle-wrap">
+        <div class="device-circle">
+            <div class="circle-inner">
+                <img src="~/images/mosquito-ready.svg" alt="Mosquito silhouette" />
+                <span>Ready</span>
+                <small>No spraying in progress</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-grid">
+        <div class="mini-stat">
+            <span class="mini-label">Insecticide Level</span>
+            <strong>@Model.Device.InsecticideLevel%</strong>
+        </div>
+        <div class="mini-stat">
+            <span class="mini-label">Next Schedule</span>
+            <strong>Today</strong>
+            <small>7:00 PM</small>
+        </div>
+    </div>
+
+    <div class="quick-actions">
+        <a asp-action="ManualSpray" class="action-box">
+            <span class="action-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                    <g transform="rotate(-16 12 12)">
+                        <path d="M8 12h9v7a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2v-7Z" />
+                        <path d="M10 12V9h5v3M11 9V6h6l2 1-2 2h-4M15 9c2 1 2 2.4 1 4" />
+                    </g>
+                    <path d="m19 4 1-1M21 7h2M20 10l1 1" />
+                </svg>
+            </span>
+            <span>Spray Now</span>
+        </a>
+    </div>
+
+    <div class="nav-bar">
+        <a asp-action="Dashboard" class="active"><span class="nav-icon" aria-hidden="true">⌂</span><span>Home</span></a>
+        <a asp-action="Schedule"><span class="nav-icon" aria-hidden="true">▣</span><span>Schedule</span></a>
+        <a asp-action="Monitoring"><span class="nav-icon" aria-hidden="true">◷</span><span>History</span></a>
+        <a asp-action="Profile"><span class="nav-icon" aria-hidden="true">⚙</span><span>Settings</span></a>
+    </div>
+</div>

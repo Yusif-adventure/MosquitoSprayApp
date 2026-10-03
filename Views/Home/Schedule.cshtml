@@ -1,0 +1,92 @@
+@model IEnumerable<SmartMosquitoControl.Models.ScheduleItem>
+@{
+    ViewData["Title"] = "Schedule";
+    var activeTab = (string?)ViewBag.ActiveScheduleTab ?? "scheduled";
+    var isHistory = activeTab == "history";
+    var defaultScheduleTime = DateTime.Now.AddHours(1).ToString("yyyy-MM-ddTHH:mm");
+    var scheduleError = TempData["ScheduleError"] as string;
+}
+
+<div class="page-card mobile-shell">
+    <div class="screen-header">
+        <a asp-action="Dashboard" class="header-left schedule-back" aria-label="Back to home">←</a>
+        <div class="header-center title">Schedule</div>
+        <div class="header-right"></div>
+    </div>
+
+    <div class="schedule-list">
+        @if (!Model.Any())
+        {
+            <div class="schedule-empty">
+                <strong>@(isHistory ? "No past schedules yet" : "No upcoming schedules")</strong>
+                <span>@(isHistory ? "Completed schedules will appear here." : "Add a spray time to keep your space protected.")</span>
+            </div>
+        }
+        else
+        {
+            @foreach (var item in Model)
+            {
+                <article class="schedule-item">
+                    <div class="date-box" aria-hidden="true"><span class="calendar-icon"></span></div>
+                    <div class="text-block">
+                        <strong>@item.Name</strong>
+                        <small>@item.Description</small>
+                        @if (isHistory)
+                        {
+                            <small class="schedule-state">Past scheduled time</small>
+                        }
+                    </div>
+                    @if (!isHistory)
+                    {
+                        <form asp-action="ToggleSchedule" method="post" class="schedule-toggle-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <input type="hidden" name="tab" value="scheduled" />
+                            <input type="hidden" name="isEnabled" value="@(!item.IsEnabled ? "true" : "false")" />
+                            <button type="submit" class="toggle @(item.IsEnabled ? "on" : "")" role="switch"
+                                    aria-checked="@item.IsEnabled.ToString().ToLowerInvariant()"
+                                    aria-label="@(item.IsEnabled ? "Disable" : "Enable") @item.Name schedule"></button>
+                        </form>
+                        <form asp-action="DeleteSchedule" method="post" class="schedule-delete-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <input type="hidden" name="tab" value="scheduled" />
+                            <button type="submit" class="schedule-delete" aria-label="Delete @item.Name schedule"
+                                    title="Delete schedule">×</button>
+                        </form>
+                    }
+                </article>
+            }
+        }
+    </div>
+
+    @if (!isHistory)
+    {
+        <details class="schedule-create" id="schedule-create" open="@(scheduleError is not null ? "open" : null)">
+            <summary>＋ Add Schedule</summary>
+            <form asp-action="AddSchedule" method="post" class="schedule-form" id="schedule-form">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="tab" value="scheduled" />
+                <label for="schedule-name">Schedule name</label>
+                <input id="schedule-name" name="name" type="text" maxlength="40" placeholder="e.g. Evening spray"
+                       required />
+                <label for="scheduled-for">Date and time</label>
+                <input id="scheduled-for" name="scheduledFor" type="datetime-local" value="@defaultScheduleTime" required />
+                @if (scheduleError is not null)
+                {
+                    <p class="schedule-error" role="alert">@scheduleError</p>
+                }
+                <button type="submit" class="primary-btn add-schedule">Save Schedule</button>
+            </form>
+        </details>
+    }
+
+    <div class="nav-bar compact">
+        <a asp-action="Dashboard"><span class="nav-icon" aria-hidden="true">⌂</span><span>Home</span></a>
+        <a asp-action="Schedule" class="active"><span class="nav-icon"
+                                                          aria-hidden="true">▣</span><span>Schedule</span></a>
+            <a asp-action="Monitoring"><span class="nav-icon" aria-hidden="true">◷</span><span>History</span></a>
+            <a asp-action="Profile"><span class="nav-icon" aria-hidden="true">⚙</span><span>Settings</span></a>
+        </div>
+    </div>
+

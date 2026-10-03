@@ -1,0 +1,44 @@
+@model IEnumerable<SmartMosquitoControl.Models.NotificationItem>
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<div class="page-card mobile-shell">
+    <div class="screen-header">
+        <a asp-action="Dashboard" class="header-left back-link" aria-label="Back to dashboard">←</a>
+        <div class="header-center title">Notifications</div>
+        <div class="header-right"></div>
+    </div>
+
+    <div class="notice-list">
+        @if (!Model.Any())
+        {
+            <div class="empty-state">
+                <strong>No notifications</strong>
+                <span>Device updates will appear here.</span>
+            </div>
+        }
+        else
+        {
+            @foreach (var item in Model)
+            {
+                <div class="notice-item @item.Severity">
+                    <span class="notice-icon">@((item.Severity == "warning") ? "!" : (item.Severity == "success") ? "✓" :
+                                                           "i")</span>
+                        <div>
+                            <strong>@item.Title</strong>
+                            <p>@item.Message</p>
+                        </div>
+                        <small>@item.CreatedAt.ToString("ddd, h:mm tt")</small>
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="nav-bar compact">
+            <a asp-action="Dashboard"><span class="nav-icon" aria-hidden="true">⌂</span><span>Home</span></a>
+            <a asp-action="Schedule"><span class="nav-icon" aria-hidden="true">▣</span><span>Schedule</span></a>
+            <a asp-action="Monitoring"><span class="nav-icon" aria-hidden="true">◷</span><span>History</span></a>
+            <a asp-action="Profile"><span class="nav-icon" aria-hidden="true">⚙</span><span>Settings</span></a>
+        </div>
+    </div>

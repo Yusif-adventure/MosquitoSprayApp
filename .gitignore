@@ -1,0 +1,41 @@
+# Build output
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.dbmdl
+*.jfm
+
+# .NET build artifacts
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]uild/
+
+# Local runtime / logs
+*.log
+*.tlog
+*.tmp
+*.cache
+
+# Local environment config
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Rider / JetBrains
+.idea/
+*.iml

@@ -1,0 +1,51 @@
+@{
+    ViewData["Title"] = "Manual Spray";
+    var sprayCompleted = TempData["SprayStarted"] as bool? == true;
+}
+
+<section class="manual-spray-shell">
+    <header class="manual-spray-header">
+        <a asp-action="Dashboard" class="manual-back" aria-label="Back to home">←</a>
+        <h1>Manual Spray</h1>
+    </header>
+
+    <main class="manual-spray-content">
+          <form asp-action="SprayNow" method="post" class="manual-spray-form" data-spray-form
+              data-duration="@ViewBag.SprayDurationSeconds">
+            @Html.AntiForgeryToken()
+            <button class="manual-spray-button" type="button" aria-label="Tap to spray" aria-pressed="false"
+                    data-spray-button>
+                <span class="spray-bottle-icon" aria-hidden="true">
+                    <img src="~/images/mosquito-spray.png" alt="Hand spraying mosquitoes" />
+                </span>
+                <span class="spray-mist" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+                <span class="manual-spray-label" data-spray-label>Tap to Spray</span>
+                <span class="spray-countdown" data-spray-countdown aria-live="off"></span>
+            </button>
+            <p class="spray-live-status" data-spray-status aria-live="polite">@(sprayCompleted ? "Spray cycle complete." : "")</p>
+        </form>
+
+        <div class="manual-spray-notices">
+            <div class="spray-notice safety-notice">
+                <span class="notice-badge shield-badge" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                        d="M12 2 3.5 5v6.2c0 5.2 3.6 9.7 8.5 10.8 4.9-1.1 8.5-5.6 8.5-10.8V5L12 2zm0 4 4.5 1.6v3.6c0 3.3-1.8 6.3-4.5 7.4-2.7-1.1-4.5-4.1-4.5-7.4V7.6L12 6z" />
+                    </svg>
+                </span>
+                <p>Ensure the room is empty<br />before spraying.</p>
+            </div>
+
+            <div class="spray-notice duration-notice">
+                <span class="notice-badge timer-badge" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                        d="M9 2h6v2H9zM11 6h2v7l4 2-1 1.7-5-2.7V6zm1 16a9 9 0 1 1 0-18 9 9 0 0 1 0 18zm0-2a7 7 0 1 0 0-14 7 7 0 0 0 0 14z" />
+                    </svg>
+                </span>
+                <p><strong>Spray duration</strong><br />~ <span data-spray-duration-display>@ViewBag.SprayDurationSeconds</span> seconds</p>
+            </div>
+        </div>
+    </main>
+</section>
+

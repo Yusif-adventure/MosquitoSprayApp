@@ -1,0 +1,97 @@
+@model IEnumerable<SmartMosquitoControl.Models.LinkedDevice>
+@{
+    ViewData["Title"] = "Linked Devices";
+    var devices = Model.ToList();
+}
+
+<div class="page-card mobile-shell linked-devices-page">
+    <div class="screen-header">
+        <a asp-action="Profile" class="header-left schedule-back" aria-label="Back to settings">←</a>
+        <div class="header-center title">Linked Devices</div>
+        <div class="header-right"></div>
+    </div>
+
+    <main class="linked-devices-content">
+        <section class="linked-devices-intro">
+            <span class="linked-devices-hero-icon" aria-hidden="true">
+                <svg viewBox="0 0 48 48"><rect x="5" y="8" width="26" height="20" rx="3" /><path d="M12 36h12M18 28v8M27 18h6a4 4 0 0 1 4 4v16H23v-7" /><path d="M31 24h2M30 33h5" /></svg>
+            </span>
+            <h1>Linked sprayers</h1>
+            <p>Pair an IoT sprayer using its unique device ID or scan the QR code on the unit.</p>
+            <div class="linked-device-count">@devices.Count sprayer@(devices.Count == 1 ? "" : "s") linked</div>
+        </section>
+
+        @if (TempData["LinkedDeviceMessage"] is string message)
+        {
+            <p class="linked-device-feedback success" role="status">@message</p>
+        }
+        @if (TempData["LinkedDeviceError"] is string error)
+        {
+            <p class="linked-device-feedback error" role="alert">@error</p>
+        }
+
+        <section class="linked-device-list" aria-labelledby="active-devices-heading">
+            <h2 id="active-devices-heading">Sprayers</h2>
+            @foreach (var device in devices)
+            {
+                <article class="linked-device-card">
+                    <span class="linked-device-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M8 12h9v7a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2v-7Z" /><path d="M10 12V9h5v3M11 9V6h6l2 1-2 2h-4M15 9c2 1 2 2.4 1 4M19 4l1-1M21 7h2M20 10l1 1" /></svg>
+                    </span>
+                    <div class="linked-device-details">
+                        <div class="linked-device-title-row">
+                            <strong>@device.Name</strong>
+                            @if (device.IsCurrent)
+                            {
+                                <span class="current-device-badge">Primary sprayer</span>
+                            }
+                        </div>
+                        <span>Sprayer ID: @device.DeviceId</span>
+                        <small>@(device.IsCurrent ? "Connected to this app" : $"Linked {device.LinkedAt.ToString("MMM d, yyyy")}")</small>
+                    </div>
+                    @if (!device.IsCurrent)
+                    {
+                        <form asp-action="UnlinkDevice" method="post" class="unlink-device-form" data-unlink-device>
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@device.Id" />
+                            <button type="submit" class="unlink-device-button" aria-label="Unlink @device.Name" title="Unlink device">×</button>
+                        </form>
+                    }
+                </article>
+            }
+        </section>
+
+        <details class="link-device-panel">
+            <summary><span class="link-device-plus" aria-hidden="true">＋</span> Pair an IoT sprayer</summary>
+            <form asp-action="LinkDevice" method="post" class="link-device-form">
+                @Html.AntiForgeryToken()
+                <p>Enter the unique ID printed on the sprayer, or scan its pairing QR code.</p>
+                <label for="sprayer-device-id">Sprayer ID</label>
+                <div class="sprayer-id-entry">
+                    <input id="sprayer-device-id" name="deviceId" minlength="4" maxlength="64" pattern="[A-Za-z0-9][A-Za-z0-9-]{3,63}" placeholder="e.g. SPR-8F31A2" autocomplete="off" required />
+                    <button type="button" class="scan-sprayer-button" data-scan-sprayer aria-label="Scan sprayer QR code" title="Scan QR code">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M4 12h4M16 12h4M12 4v4M12 16v4" /></svg>
+                    </button>
+                </div>
+                <p class="sprayer-scan-status" data-sprayer-scan-status aria-live="polite"></p>
+                <div class="sprayer-scan-panel" data-sprayer-scan-panel hidden>
+                    <video data-sprayer-scan-video playsinline muted aria-label="Camera view for scanning sprayer QR code"></video>
+                    <p>Hold the sprayer QR code inside the camera view.</p>
+                    <button type="button" class="secondary-btn" data-stop-sprayer-scan>Cancel scan</button>
+                </div>
+                <label for="sprayer-name">Sprayer name <span>(optional)</span></label>
+                <input id="sprayer-name" name="deviceName" maxlength="40" placeholder="e.g. Living room sprayer" />
+                <button type="submit" class="primary-btn">Pair Sprayer</button>
+            </form>
+        </details>
+
+        <p class="linked-devices-security-note">A sprayer can only be paired once. Unlinking removes it from this account.</p>
+    </main>
+
+    <div class="nav-bar compact">
+        <a asp-action="Dashboard"><span class="nav-icon" aria-hidden="true">⌂</span><span>Home</span></a>
+        <a asp-action="Schedule"><span class="nav-icon" aria-hidden="true">▣</span><span>Schedule</span></a>
+        <a asp-action="Monitoring"><span class="nav-icon" aria-hidden="true">◷</span><span>History</span></a>
+        <a asp-action="Profile" class="active"><span class="nav-icon" aria-hidden="true">⚙</span><span>Settings</span></a>
+    </div>
+</div>
