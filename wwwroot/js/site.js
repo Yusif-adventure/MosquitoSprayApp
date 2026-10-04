@@ -1,4 +1,4 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
+// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
 // for details on configuring this project to bundle and minify static web assets.
 
 (() => {
@@ -154,15 +154,6 @@
 		});
 	}
 
-	const addButton = document.querySelector("[data-open-schedule-form]");
-	const scheduleCreate = document.querySelector("#schedule-create");
-	if (addButton && scheduleCreate) {
-		addButton.addEventListener("click", () => {
-			scheduleCreate.open = true;
-			scheduleCreate.scrollIntoView({ behavior: "smooth", block: "nearest" });
-			scheduleCreate.querySelector("input[name='name']")?.focus({ preventScroll: true });
-		});
-	}
 
 	const form = document.querySelector("[data-spray-form]");
 	const button = document.querySelector("[data-spray-button]");
@@ -210,4 +201,16 @@
 			status.textContent = `Spraying. ${remainingSeconds} seconds remaining.`;
 		}, 1000);
 	}, { once: true });
+	const liveClock = document.querySelector("[data-live-clock]");
+	if (liveClock) {
+		const updateClock = () => {
+			const now = new Date();
+			let hours = now.getHours();
+			const minutes = now.getMinutes().toString().padStart(2, '0');
+			hours = hours % 12 || 12;
+			liveClock.textContent = `${hours}:${minutes}`;
+		};
+		updateClock();
+		window.setInterval(updateClock, 10000);
+	}
 })();

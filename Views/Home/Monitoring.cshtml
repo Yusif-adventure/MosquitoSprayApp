@@ -1,11 +1,11 @@
-@model SmartMosquitoControl.Controllers.MonitoringViewModel
+@model SmartMosquitoControl.Models.MonitoringViewModel
 @{
     ViewData["Title"] = "Monitoring";
 }
 
 <div class="page-card mobile-shell">
     <div class="screen-header">
-        <div class="header-left">←</div>
+        <a asp-action="Dashboard" class="header-left back-link" aria-label="Back to dashboard">←</a>
         <div class="header-center title">Device Monitoring</div>
         <div class="header-right"></div>
     </div>
@@ -13,22 +13,23 @@
     <div class="monitor-panel">
         <div class="monitor-row">
             <span class="label">Device Status</span>
-            <span class="status online">● @(Model.Device.IsOnline ? "Online" : "Offline")</span>
+            <span class="status @(Model.Device?.IsOnline == true ? "online" : "offline")">
+                ● @(Model.Device?.IsOnline == true ? "Online" : "Offline")
+            </span>
         </div>
         <div class="monitor-row secondary">
-            <span>Last seen: @Model.Device.LastSeen.ToString("ddd, MMM d, yyyy")</span>
+            <span>Last seen: @(Model.Device?.LastSeen.ToLocalTime().ToString("ddd, MMM d, yyyy") ?? "—")</span>
         </div>
         <div class="meter-row">
             <span>Insecticide Level</span>
-            <strong>@Model.Device.InsecticideLevel%</strong>
+            <strong>@(Model.Device?.InsecticideLevel.ToString() ?? "--")%</strong>
         </div>
-        <div class="meter-bar"><span style="width:@Model.Device.InsecticideLevel%"></span></div>
+        <div class="meter-bar"><span style="width:@(Model.Device?.InsecticideLevel ?? 0)%"></span></div>
     </div>
 
     <div class="history-card">
         <div class="history-header">
             <span>Spray History</span>
-            <a href="#">View all</a>
         </div>
         <ul>
             @if (!Model.History.Any())
@@ -40,7 +41,7 @@
                 @foreach (var item in Model.History)
                 {
                     <li>
-                        <span>@item.Time.ToString("MMM d, yyyy, h:mm tt")</span>
+                        <span>@item.Time.ToLocalTime().ToString("MMM d, yyyy, h:mm tt")</span>
                         <em>@item.Type</em>
                         <span class="check">✓</span>
                     </li>
@@ -49,11 +50,5 @@
         </ul>
     </div>
 
-    <div class="nav-bar compact">
-        <a asp-action="Dashboard"><span class="nav-icon" aria-hidden="true">⌂</span><span>Home</span></a>
-        <a asp-action="Schedule"><span class="nav-icon" aria-hidden="true">▣</span><span>Schedule</span></a>
-        <a asp-action="Monitoring" class="active"><span class="nav-icon"
-                                                            aria-hidden="true">◷</span><span>History</span></a>
-            <a asp-action="Profile"><span class="nav-icon" aria-hidden="true">⚙</span><span>Settings</span></a>
-        </div>
-    </div>
+    @await Html.PartialAsync("_NavBar", "Monitoring")
+</div>

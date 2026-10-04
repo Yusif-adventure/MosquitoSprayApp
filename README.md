@@ -35,7 +35,7 @@ Check your installed SDK:
 dotnet --version
 ```
 
-This project targets `net9.0`, and the current environment used for development is .NET SDK 10.0.300, which is compatible for building and running the app.
+This project targets `net10.0` and uses the .NET 10 SDK for build and runtime.
 
 ## Installation
 
@@ -244,6 +244,18 @@ dotnet build -c Release
 - Confirm the project path is correct.
 - Run `dotnet restore` first.
 - Ensure the .NET SDK is installed and available in PATH.
+ - You can also run the app in Docker using the provided `Dockerfile` and `docker-compose.yml`.
+ 
+### Run in Docker (local)
+
+Build and start services:
+
+```bash
+docker compose build --pull
+docker compose up -d
+```
+
+The web app will be available at `http://localhost:5253` after migrations run.
 - Check that the project file exists and targets a supported framework.
 
 ### Port issues

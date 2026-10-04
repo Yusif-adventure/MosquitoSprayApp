@@ -22,23 +22,17 @@
         {
             @foreach (var item in Model)
             {
-                <div class="notice-item @item.Severity">
-                    <span class="notice-icon">@((item.Severity == "warning") ? "!" : (item.Severity == "success") ? "✓" :
-                                                           "i")</span>
-                        <div>
-                            <strong>@item.Title</strong>
-                            <p>@item.Message</p>
-                        </div>
-                        <small>@item.CreatedAt.ToString("ddd, h:mm tt")</small>
+                <div class="notice-item @item.SeverityCssClass">
+                    <span class="notice-icon">@((item.SeverityCssClass == "warning") ? "!" : (item.SeverityCssClass == "success") ? "✓" : "i")</span>
+                    <div>
+                        <strong>@item.Title</strong>
+                        <p>@item.Message</p>
                     </div>
-                }
+                    <small>@item.CreatedAt.ToLocalTime().ToString("ddd, h:mm tt")</small>
+                </div>
             }
-        </div>
-
-        <div class="nav-bar compact">
-            <a asp-action="Dashboard"><span class="nav-icon" aria-hidden="true">⌂</span><span>Home</span></a>
-            <a asp-action="Schedule"><span class="nav-icon" aria-hidden="true">▣</span><span>Schedule</span></a>
-            <a asp-action="Monitoring"><span class="nav-icon" aria-hidden="true">◷</span><span>History</span></a>
-            <a asp-action="Profile"><span class="nav-icon" aria-hidden="true">⚙</span><span>Settings</span></a>
-        </div>
+        }
     </div>
+
+    @await Html.PartialAsync("_NavBar", "Dashboard")
+</div>

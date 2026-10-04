@@ -41,7 +41,6 @@
                         <form asp-action="ToggleSchedule" method="post" class="schedule-toggle-form">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@item.Id" />
-                            <input type="hidden" name="tab" value="scheduled" />
                             <input type="hidden" name="isEnabled" value="@(!item.IsEnabled ? "true" : "false")" />
                             <button type="submit" class="toggle @(item.IsEnabled ? "on" : "")" role="switch"
                                     aria-checked="@item.IsEnabled.ToString().ToLowerInvariant()"
@@ -50,7 +49,6 @@
                         <form asp-action="DeleteSchedule" method="post" class="schedule-delete-form">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@item.Id" />
-                            <input type="hidden" name="tab" value="scheduled" />
                             <button type="submit" class="schedule-delete" aria-label="Delete @item.Name schedule"
                                     title="Delete schedule">×</button>
                         </form>
@@ -66,7 +64,6 @@
             <summary>＋ Add Schedule</summary>
             <form asp-action="AddSchedule" method="post" class="schedule-form" id="schedule-form">
                 @Html.AntiForgeryToken()
-                <input type="hidden" name="tab" value="scheduled" />
                 <label for="schedule-name">Schedule name</label>
                 <input id="schedule-name" name="name" type="text" maxlength="40" placeholder="e.g. Evening spray"
                        required />
@@ -81,12 +78,6 @@
         </details>
     }
 
-    <div class="nav-bar compact">
-        <a asp-action="Dashboard"><span class="nav-icon" aria-hidden="true">⌂</span><span>Home</span></a>
-        <a asp-action="Schedule" class="active"><span class="nav-icon"
-                                                          aria-hidden="true">▣</span><span>Schedule</span></a>
-            <a asp-action="Monitoring"><span class="nav-icon" aria-hidden="true">◷</span><span>History</span></a>
-            <a asp-action="Profile"><span class="nav-icon" aria-hidden="true">⚙</span><span>Settings</span></a>
-        </div>
+    @await Html.PartialAsync("_NavBar", "Schedule")
     </div>
 

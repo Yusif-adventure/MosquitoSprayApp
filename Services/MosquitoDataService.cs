@@ -1,146 +1,269 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using SmartMosquitoControl.Data;
 using SmartMosquitoControl.Models;
 
 namespace SmartMosquitoControl.Services;
 
 public class MosquitoDataService
 {
-    public DeviceState Device { get; } = new();
-    public List<LinkedDevice> LinkedDevices { get; } = new();
-    public List<ScheduleItem> Schedules { get; } = new();
-    public List<ScheduleItem> ScheduleHistory { get; } = new();
-    public List<SprayHistoryItem> SprayHistory { get; } = new();
-    public List<NotificationItem> Notifications { get; } = new();
-    public int SprayDurationSeconds { get; private set; } = 30;
-    public int LowInsecticideThreshold { get; private set; } = 20;
-    public bool LowInsecticideAlertsEnabled { get; private set; } = true;
-    public bool SprayNotificationsEnabled { get; private set; } = true;
+    private readonly ApplicationDbContext _db;
+    private readonly IHttpContextAccessor _http;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public MosquitoDataService()
+    public MosquitoDataService(
+        ApplicationDbContext db,
+        IHttpContextAccessor http,
+        UserManager<ApplicationUser> userManager)
     {
-        var now = DateTime.Now;
-        LinkedDevices.Add(new LinkedDevice
-        {
-            Id = 1,
-            Name = Device.Name,
-            DeviceId = Device.DeviceId,
-            LinkedAt = now,
-            LastActiveAt = now,
-            IsCurrent = true
-        });
-
-        var today = DateTime.Today;
-        var nextEvening = today.AddDays(DateTime.Now.TimeOfDay >= TimeSpan.FromHours(19) ? 1 : 0).AddHours(19);
-        var nextMorning = today.AddDays(DateTime.Now.TimeOfDay >= TimeSpan.FromHours(10) ? 1 : 0).AddHours(10);
-        var daysUntilSaturday = ((int)DayOfWeek.Saturday - (int)today.DayOfWeek + 7) % 7;
-        var nextSaturday = today.AddDays(daysUntilSaturday == 0 ? 7 : daysUntilSaturday).AddHours(18);
-        var spareCycle = today.AddDays(2).AddHours(9);
-
-        Schedules.AddRange(new[]
-        {
-            new ScheduleItem { Id = 1, Name = "Evening Protection", Description = "Every day • 7:00 PM", ScheduledFor = nextEvening, IsEnabled = true, IsCustom = false },
-            new ScheduleItem { Id = 2, Name = "Morning Refresh", Description = "Every day • 10:00 AM", ScheduledFor = nextMorning, IsEnabled = true, IsCustom = false },
-            new ScheduleItem { Id = 3, Name = "Weekend Spray", Description = nextSaturday.ToString("ddd, MMM d • h:mm tt"), ScheduledFor = nextSaturday, IsEnabled = true, IsCustom = true },
-            new ScheduleItem { Id = 4, Name = "Spare Cycle", Description = spareCycle.ToString("ddd, MMM d • h:mm tt"), ScheduledFor = spareCycle, IsEnabled = false, IsCustom = true }
-        });
-
+        _db = db;
+        _http = http;
+        _userManager = userManager;
     }
 
-    public void AddSchedule(ScheduleItem item)
+    private string? CurrentUserId =>
+        _http.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    // ── Device ────────────────────────────────────────────────────────────────
+
+    public async Task<DeviceState?> GetDeviceAsync()
     {
-        item.Id = Schedules.Count == 0 ? 1 : Schedules.Max(x => x.Id) + 1;
-        item.IsEnabled = true;
-        Schedules.Insert(0, item);
+        var userId = CurrentUserId;
+        if (userId is null) return null;
+        return await _db.Devices.FirstOrDefaultAsync(d => d.UserId == userId);
     }
 
-    public bool SetScheduleEnabled(int id, bool isEnabled)
-    {
-        var schedule = Schedules.FirstOrDefault(item => item.Id == id);
-        if (schedule is null)
-        {
-            return false;
-        }
+    // ── User settings ─────────────────────────────────────────────────────────
 
+    public async Task<ApplicationUser?> GetCurrentUserAsync()
+    {
+        var userId = CurrentUserId;
+        if (userId is null) return null;
+        return await _userManager.FindByIdAsync(userId);
+    }
+
+    public async Task UpdateSettingsAsync(
+        int sprayDurationSeconds,
+        int lowInsecticideThreshold,
+        bool lowInsecticideAlertsEnabled,
+        bool sprayNotificationsEnabled)
+    {
+        var user = await GetCurrentUserAsync();
+        if (user is null) return;
+
+        user.SprayDurationSeconds = Math.Clamp(sprayDurationSeconds, 10, 120);
+        user.LowInsecticideThreshold = Math.Clamp(lowInsecticideThreshold, 5, 80);
+        user.LowInsecticideAlertsEnabled = lowInsecticideAlertsEnabled;
+        user.SprayNotificationsEnabled = sprayNotificationsEnabled;
+        await _userManager.UpdateAsync(user);
+    }
+
+    // ── Schedules ─────────────────────────────────────────────────────────────
+
+    public async Task<List<ScheduleItem>> GetUpcomingSchedulesAsync()
+    {
+        var userId = CurrentUserId;
+        if (userId is null) return new();
+        return await _db.Schedules
+            .Where(s => s.UserId == userId && s.ScheduledFor > DateTime.UtcNow)
+            .OrderBy(s => s.ScheduledFor)
+            .ToListAsync();
+    }
+
+    public async Task<List<ScheduleItem>> GetScheduleHistoryAsync()
+    {
+        var userId = CurrentUserId;
+        if (userId is null) return new();
+        return await _db.Schedules
+            .Where(s => s.UserId == userId && s.ScheduledFor <= DateTime.UtcNow)
+            .OrderByDescending(s => s.ScheduledFor)
+            .ToListAsync();
+    }
+
+    public async Task AddScheduleAsync(ScheduleItem item)
+    {
+        var userId = CurrentUserId;
+        if (userId is null) return;
+        item.UserId = userId;
+        _db.Schedules.Add(item);
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task<bool> SetScheduleEnabledAsync(int id, bool isEnabled)
+    {
+        var userId = CurrentUserId;
+        if (userId is null) return false;
+        var schedule = await _db.Schedules
+            .FirstOrDefaultAsync(s => s.Id == id && s.UserId == userId);
+        if (schedule is null) return false;
         schedule.IsEnabled = isEnabled;
+        await _db.SaveChangesAsync();
         return true;
     }
 
-    public bool RemoveSchedule(int id)
+    public async Task<bool> RemoveScheduleAsync(int id)
     {
-        var schedule = Schedules.FirstOrDefault(item => item.Id == id);
-        return schedule is not null && Schedules.Remove(schedule);
+        var userId = CurrentUserId;
+        if (userId is null) return false;
+        var schedule = await _db.Schedules
+            .FirstOrDefaultAsync(s => s.Id == id && s.UserId == userId);
+        if (schedule is null) return false;
+        _db.Schedules.Remove(schedule);
+        await _db.SaveChangesAsync();
+        return true;
     }
 
-    public LinkedDevice? AddLinkedDevice(string deviceId, string name)
-    {
-        var normalizedDeviceId = deviceId.Trim().ToUpperInvariant();
-        if (LinkedDevices.Any(device => string.Equals(device.DeviceId, normalizedDeviceId, StringComparison.OrdinalIgnoreCase)))
-        {
-            return null;
-        }
+    // ── Linked devices ────────────────────────────────────────────────────────
 
-        var linkedAt = DateTime.Now;
+    public async Task<List<LinkedDevice>> GetLinkedDevicesAsync()
+    {
+        var userId = CurrentUserId;
+        if (userId is null) return new();
+        return await _db.LinkedDevices
+            .Where(d => d.UserId == userId)
+            .OrderByDescending(d => d.IsCurrent)
+            .ThenByDescending(d => d.LastActiveAt)
+            .ToListAsync();
+    }
+
+    public async Task<LinkedDevice?> AddLinkedDeviceAsync(string deviceId, string name)
+    {
+        var userId = CurrentUserId;
+        if (userId is null) return null;
+
+        var normalizedDeviceId = deviceId.Trim().ToUpperInvariant();
+        var exists = await _db.LinkedDevices.AnyAsync(d =>
+            d.UserId == userId &&
+            d.DeviceId == normalizedDeviceId);
+        if (exists) return null;
+
+        // First device linked becomes the primary device
+        var isFirstDevice = !await _db.LinkedDevices.AnyAsync(d => d.UserId == userId);
+        var linkedAt = DateTime.UtcNow;
         var linkedDevice = new LinkedDevice
         {
-            Id = LinkedDevices.Count == 0 ? 1 : LinkedDevices.Max(device => device.Id) + 1,
+            UserId = userId,
             Name = string.IsNullOrWhiteSpace(name) ? "IoT Sprayer" : name.Trim(),
             DeviceId = normalizedDeviceId,
             LinkedAt = linkedAt,
-            LastActiveAt = linkedAt
+            LastActiveAt = linkedAt,
+            IsCurrent = isFirstDevice
         };
 
-        LinkedDevices.Insert(0, linkedDevice);
+        _db.LinkedDevices.Add(linkedDevice);
+
+        // Auto-create a DeviceState record for the first linked sprayer
+        if (isFirstDevice)
+        {
+            var hasDevice = await _db.Devices.AnyAsync(d => d.UserId == userId);
+            if (!hasDevice)
+            {
+                _db.Devices.Add(new DeviceState
+                {
+                    UserId = userId,
+                    DeviceId = normalizedDeviceId,
+                    Name = linkedDevice.Name,
+                    IsOnline = false,
+                    InsecticideLevel = 100,
+                    LastSeen = DateTime.UtcNow,
+                    Location = "Living Room"
+                });
+            }
+        }
+
+        await _db.SaveChangesAsync();
         return linkedDevice;
     }
 
-    public bool RemoveLinkedDevice(int id)
+    public async Task<bool> RemoveLinkedDeviceAsync(int id)
     {
-        var linkedDevice = LinkedDevices.FirstOrDefault(device => device.Id == id && !device.IsCurrent);
-        return linkedDevice is not null && LinkedDevices.Remove(linkedDevice);
+        var userId = CurrentUserId;
+        if (userId is null) return false;
+        var device = await _db.LinkedDevices
+            .FirstOrDefaultAsync(d => d.Id == id && d.UserId == userId && !d.IsCurrent);
+        if (device is null) return false;
+        _db.LinkedDevices.Remove(device);
+        await _db.SaveChangesAsync();
+        return true;
     }
 
-    public void UpdateSettings(int sprayDurationSeconds, int lowInsecticideThreshold, bool lowInsecticideAlertsEnabled, bool sprayNotificationsEnabled)
+    // ── Spray history ─────────────────────────────────────────────────────────
+
+    public async Task<List<SprayHistoryItem>> GetSprayHistoryAsync()
     {
-        SprayDurationSeconds = Math.Clamp(sprayDurationSeconds, 10, 120);
-        LowInsecticideThreshold = Math.Clamp(lowInsecticideThreshold, 5, 80);
-        LowInsecticideAlertsEnabled = lowInsecticideAlertsEnabled;
-        SprayNotificationsEnabled = sprayNotificationsEnabled;
+        var userId = CurrentUserId;
+        if (userId is null) return new();
+        return await _db.SprayHistory
+            .Where(h => h.UserId == userId)
+            .OrderByDescending(h => h.Time)
+            .ToListAsync();
     }
 
-    public void TriggerManualSpray()
+    // ── Notifications ─────────────────────────────────────────────────────────
+
+    public async Task<List<NotificationItem>> GetNotificationsAsync()
     {
-        var previousLevel = Device.InsecticideLevel;
-        var sprayedAt = DateTime.Now;
-        Device.LastSprayAt = sprayedAt;
-        Device.InsecticideLevel = Math.Max(10, Device.InsecticideLevel - 5);
-        Device.LastSeen = sprayedAt;
-        SprayHistory.Insert(0, new SprayHistoryItem
-        {
-            Time = sprayedAt,
-            Type = "Manual spray"
-        });
+        var userId = CurrentUserId;
+        if (userId is null) return new();
+        return await _db.Notifications
+            .Where(n => n.UserId == userId)
+            .OrderByDescending(n => n.CreatedAt)
+            .ToListAsync();
+    }
 
-        if (SprayNotificationsEnabled)
-        {
-            Notifications.Insert(0, new NotificationItem
-            {
-                Id = Notifications.Count == 0 ? 1 : Notifications.Max(x => x.Id) + 1,
-                Title = "Manual Spray Triggered",
-                Message = "A manual spray cycle was triggered successfully.",
-                CreatedAt = DateTime.Now,
-                Severity = "info"
-            });
-        }
+    // ── Manual spray ──────────────────────────────────────────────────────────
 
-        if (LowInsecticideAlertsEnabled && previousLevel > LowInsecticideThreshold && Device.InsecticideLevel <= LowInsecticideThreshold)
+    public async Task TriggerManualSprayAsync()
+    {
+        var userId = CurrentUserId;
+        if (userId is null) return;
+
+        var user = await GetCurrentUserAsync();
+        var device = await _db.Devices.FirstOrDefaultAsync(d => d.UserId == userId);
+
+        if (device is not null)
         {
-            Notifications.Insert(0, new NotificationItem
+            var previousLevel = device.InsecticideLevel;
+            var sprayedAt = DateTime.UtcNow;
+            device.LastSprayAt = sprayedAt;
+            device.InsecticideLevel = Math.Max(10, device.InsecticideLevel - 5);
+            device.LastSeen = sprayedAt;
+
+            _db.SprayHistory.Add(new SprayHistoryItem
             {
-                Id = Notifications.Count == 0 ? 1 : Notifications.Max(x => x.Id) + 1,
-                Title = "Low Insecticide Level",
-                Message = $"Insecticide has reached {Device.InsecticideLevel}%. Please refill soon.",
-                CreatedAt = DateTime.Now,
-                Severity = "warning"
+                UserId = userId,
+                Time = sprayedAt,
+                Type = "Manual spray"
             });
+
+            if (user?.SprayNotificationsEnabled == true)
+            {
+                _db.Notifications.Add(new NotificationItem
+                {
+                    UserId = userId,
+                    Title = "Manual Spray Triggered",
+                    Message = "A manual spray cycle was triggered successfully.",
+                    CreatedAt = DateTime.UtcNow,
+                    Severity = NotificationSeverity.Info
+                });
+            }
+
+            if (user?.LowInsecticideAlertsEnabled == true
+                && previousLevel > (user?.LowInsecticideThreshold ?? 20)
+                && device.InsecticideLevel <= (user?.LowInsecticideThreshold ?? 20))
+            {
+                _db.Notifications.Add(new NotificationItem
+                {
+                    UserId = userId,
+                    Title = "Low Insecticide Level",
+                    Message = $"Insecticide has reached {device.InsecticideLevel}%. Please refill soon.",
+                    CreatedAt = DateTime.UtcNow,
+                    Severity = NotificationSeverity.Warning
+                });
+            }
+
+            await _db.SaveChangesAsync();
         }
     }
 }

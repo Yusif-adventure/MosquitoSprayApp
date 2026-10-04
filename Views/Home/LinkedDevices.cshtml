@@ -88,10 +88,5 @@
         <p class="linked-devices-security-note">A sprayer can only be paired once. Unlinking removes it from this account.</p>
     </main>
 
-    <div class="nav-bar compact">
-        <a asp-action="Dashboard"><span class="nav-icon" aria-hidden="true">⌂</span><span>Home</span></a>
-        <a asp-action="Schedule"><span class="nav-icon" aria-hidden="true">▣</span><span>Schedule</span></a>
-        <a asp-action="Monitoring"><span class="nav-icon" aria-hidden="true">◷</span><span>History</span></a>
-        <a asp-action="Profile" class="active"><span class="nav-icon" aria-hidden="true">⚙</span><span>Settings</span></a>
-    </div>
+    @await Html.PartialAsync("_NavBar", "Profile")
 </div>
