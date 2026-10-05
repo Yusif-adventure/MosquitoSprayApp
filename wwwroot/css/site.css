@@ -3655,3 +3655,116 @@ html[data-theme="dark"] .action-box:first-child {
         grid-template-columns: 1fr;
     }
 }
+
+/* Google Auth Button Styles */
+.auth-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+    color: var(--text-soft);
+}
+.auth-divider::before, .auth-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--line);
+}
+.auth-divider span {
+    padding: 0 10px;
+    font-size: 0.9rem;
+}
+.google-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--white);
+    color: var(--text-main);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    width: 100%;
+}
+.google-btn:hover {
+    background-color: #f8f9f8;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+.external-auth-form {
+    margin-top: 10px;
+}
+
+/* ── Flash messages (TempData["Info"] / TempData["Error"]) ─────────────────── */
+.flash {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    width: min(92vw, 420px);
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    line-height: 1.35;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+.flash-info {
+    background: #e8f5ec;
+    color: #1d5a33;
+    border: 1px solid #b7dcc4;
+}
+.flash-error {
+    background: #fdeceb;
+    color: #8a1f17;
+    border: 1px solid #f2b8b3;
+}
+
+/* Small text-style button used for secondary in-row actions */
+.link-button {
+    background: none;
+    border: 0;
+    padding: 4px 6px;
+    color: inherit;
+    font: inherit;
+    font-size: 0.85rem;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.make-primary-form {
+    margin-right: 4px;
+}
+
+.notice-item.is-read {
+    opacity: 0.6;
+}
+
+.resend-form {
+    margin: 16px 0;
+    text-align: center;
+}
+.resend-form p {
+    margin: 0 0 8px;
+    color: var(--text-soft);
+}
+
+/* One-time sprayer key reveal */
+.key-reveal dl {
+    margin: 8px 0 0;
+}
+.key-reveal dt {
+    font-weight: 600;
+    margin-top: 6px;
+}
+.key-reveal dd {
+    margin: 2px 0 0;
+}
+.key-reveal code {
+    display: block;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.06);
+    word-break: break-all;
+    user-select: all;
+}

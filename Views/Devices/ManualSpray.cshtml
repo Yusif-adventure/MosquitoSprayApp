@@ -5,14 +5,13 @@
 
 <section class="manual-spray-shell">
     <header class="manual-spray-header">
-        <a asp-action="Dashboard" class="manual-back" aria-label="Back to home">←</a>
+        <a asp-action="Dashboard" asp-controller="Home" class="manual-back" aria-label="Back to home">←</a>
         <h1>Manual Spray</h1>
     </header>
 
     <main class="manual-spray-content">
-          <form asp-action="SprayNow" method="post" class="manual-spray-form" data-spray-form
+          <form asp-action="SprayNow" asp-controller="Devices" method="post" class="manual-spray-form" data-spray-form
               data-duration="@ViewBag.SprayDurationSeconds">
-            @Html.AntiForgeryToken()
             <button class="manual-spray-button" type="button" aria-label="Tap to spray" aria-pressed="false"
                     data-spray-button>
                 <span class="spray-bottle-icon" aria-hidden="true">

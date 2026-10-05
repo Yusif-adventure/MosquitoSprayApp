@@ -1,0 +1,9 @@
+@* One-shot messages set by controllers via TempData["Info"] / TempData["Error"]. *@
+@if (TempData["Info"] is string flashInfo)
+{
+    <div class="flash flash-info" role="status" data-flash>@flashInfo</div>
+}
+@if (TempData["Error"] is string flashError)
+{
+    <div class="flash flash-error" role="alert" data-flash>@flashError</div>
+}

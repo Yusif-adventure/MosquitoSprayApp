@@ -1,0 +1,39 @@
+# Copy .env.example to .env and fill it in. No credentials live in this file.
+services:
+  app:
+    build: .
+    image: smartmosquito:latest
+    ports:
+      - "5253:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+
+      # Behind a TLS-terminating reverse proxy, uncomment so the app sees the real scheme and client IP
+      # (needed for HTTPS cookies/links and per-IP rate limiting):
+      # ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+
+      # "true" = no physical sprayer; the server completes spray commands itself (demo mode).
+      Device__SimulateHardware: ${SIMULATE_HARDWARE:-false}
+
+      # Email confirmation needs a working SMTP server. Without one, set this to "false" or users can't sign in.
+      Auth__RequireConfirmedEmail: ${REQUIRE_CONFIRMED_EMAIL:-true}
+      Email__Host: ${EMAIL_HOST:-}
+      Email__Port: ${EMAIL_PORT:-587}
+      Email__User: ${EMAIL_USER:-}
+      Email__Password: ${EMAIL_PASSWORD:-}
+      Email__From: ${EMAIL_FROM:-}
+
+      # Leave blank to hide the "Continue with Google" button.
+      Authentication__Google__ClientId: ${GOOGLE_CLIENT_ID:-}
+      Authentication__Google__ClientSecret: ${GOOGLE_CLIENT_SECRET:-}
+
+      # Restrict to your hostname(s) in production, e.g. "app.example.com"
+      AllowedHosts: ${ALLOWED_HOSTS:-*}
+    volumes:
+      - mosquito-data:/app/data
+      - mosquito-logs:/app/logs
+    restart: unless-stopped
+
+volumes:
+  mosquito-data:
+  mosquito-logs:

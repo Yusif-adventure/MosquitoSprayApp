@@ -6,7 +6,7 @@
 
 <div class="page-card mobile-shell linked-devices-page">
     <div class="screen-header">
-        <a asp-action="Profile" class="header-left schedule-back" aria-label="Back to settings">←</a>
+        <a asp-action="Profile" asp-controller="Account" class="header-left schedule-back" aria-label="Back to settings">←</a>
         <div class="header-center title">Linked Devices</div>
         <div class="header-right"></div>
     </div>
@@ -24,6 +24,19 @@
         @if (TempData["LinkedDeviceMessage"] is string message)
         {
             <p class="linked-device-feedback success" role="status">@message</p>
+        }
+        @if (TempData["LinkedDeviceKey"] is string newKey)
+        {
+            <section class="linked-device-feedback key-reveal" role="alert">
+                <strong>Save this key now — it won't be shown again.</strong>
+                <p>Enter these in your sprayer's configuration so it can connect to this account:</p>
+                <dl>
+                    <dt>Device ID</dt>
+                    <dd><code>@(TempData["LinkedDeviceId"] as string)</code></dd>
+                    <dt>Device key</dt>
+                    <dd><code class="device-key">@newKey</code></dd>
+                </dl>
+            </section>
         }
         @if (TempData["LinkedDeviceError"] is string error)
         {
@@ -47,23 +60,33 @@
                             }
                         </div>
                         <span>Sprayer ID: @device.DeviceId</span>
-                        <small>@(device.IsCurrent ? "Connected to this app" : $"Linked {device.LinkedAt.ToString("MMM d, yyyy")}")</small>
+                        @if (device.IsCurrent)
+                        {
+                            <small>Used for Spray Now and schedules</small>
+                        }
+                        else
+                        {
+                            <small>Linked @Html.LocalTime(device.LinkedAt, "date")</small>
+                        }
                     </div>
                     @if (!device.IsCurrent)
                     {
-                        <form asp-action="UnlinkDevice" method="post" class="unlink-device-form" data-unlink-device>
-                            @Html.AntiForgeryToken()
+                        <form asp-action="SetCurrentDevice" asp-controller="Devices" method="post" class="make-primary-form">
                             <input type="hidden" name="id" value="@device.Id" />
-                            <button type="submit" class="unlink-device-button" aria-label="Unlink @device.Name" title="Unlink device">×</button>
+                            <button type="submit" class="link-button" aria-label="Make @device.Name the primary sprayer">Make primary</button>
                         </form>
                     }
+                    <form asp-action="UnlinkDevice" asp-controller="Devices" method="post" class="unlink-device-form" data-unlink-device>
+                        <input type="hidden" name="id" value="@device.Id" />
+                        <button type="submit" class="unlink-device-button" aria-label="Unlink @device.Name" title="Unlink device">×</button>
+                    </form>
                 </article>
             }
         </section>
 
         <details class="link-device-panel">
             <summary><span class="link-device-plus" aria-hidden="true">＋</span> Pair an IoT sprayer</summary>
-            <form asp-action="LinkDevice" method="post" class="link-device-form">
+            <form asp-action="LinkDevice" asp-controller="Devices" method="post" class="link-device-form">
                 @Html.AntiForgeryToken()
                 <p>Enter the unique ID printed on the sprayer, or scan its pairing QR code.</p>
                 <label for="sprayer-device-id">Sprayer ID</label>
@@ -85,13 +108,8 @@
             </form>
         </details>
 
-        <p class="linked-devices-security-note">A sprayer can only be paired once. Unlinking removes it from this account.</p>
+        <p class="linked-devices-security-note">A sprayer can only be paired to one account. Unlinking removes it and invalidates its key.</p>
     </main>
 
-    <div class="nav-bar compact">
-        <a asp-action="Dashboard"><span class="nav-icon" aria-hidden="true">⌂</span><span>Home</span></a>
-        <a asp-action="Schedule"><span class="nav-icon" aria-hidden="true">▣</span><span>Schedule</span></a>
-        <a asp-action="Monitoring"><span class="nav-icon" aria-hidden="true">◷</span><span>History</span></a>
-        <a asp-action="Profile" class="active"><span class="nav-icon" aria-hidden="true">⚙</span><span>Settings</span></a>
-    </div>
+    @await Html.PartialAsync("_NavBar", "Profile")
 </div>
