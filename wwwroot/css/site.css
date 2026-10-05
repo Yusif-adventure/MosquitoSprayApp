@@ -3647,9 +3647,6 @@ html[data-theme="dark"] .action-box:first-child {
 }
 
 @media (max-width: 640px) {
-    .page-shell {
-        padding: 20px 14px;
-    }
 
     .app-grid {
         grid-template-columns: 1fr;
