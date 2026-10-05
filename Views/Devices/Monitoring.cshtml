@@ -1,0 +1,63 @@
+@model SmartMosquitoControl.Models.MonitoringViewModel
+@{
+    ViewData["Title"] = "Monitoring";
+}
+
+<div class="page-card mobile-shell">
+    <div class="screen-header">
+        <a asp-action="Dashboard" asp-controller="Home" class="header-left back-link" aria-label="Back to dashboard">←</a>
+        <div class="header-center title">Device Monitoring</div>
+        <div class="header-right"></div>
+    </div>
+
+    <div class="monitor-panel">
+        <div class="monitor-row">
+            <span class="label">Device Status</span>
+            <span class="status @(Model.Device?.IsOnline == true ? "online" : "offline")">
+                ● @(Model.Device?.IsOnline == true ? "Online" : "Offline")
+            </span>
+        </div>
+        <div class="monitor-row secondary">
+            <span>Last seen:
+                @if (Model.Device is null)
+                {
+                    <text>—</text>
+                }
+                else
+                {
+                    @Html.LocalTime(Model.Device.LastSeen, "datetime")
+                }
+            </span>
+        </div>
+        <div class="meter-row">
+            <span>Insecticide Level</span>
+            <strong>@(Model.Device?.InsecticideLevel.ToString() ?? "--")%</strong>
+        </div>
+        <div class="meter-bar"><span style="width:@(Model.Device?.InsecticideLevel ?? 0)%"></span></div>
+    </div>
+
+    <div class="history-card">
+        <div class="history-header">
+            <span>Spray History</span>
+        </div>
+        <ul>
+            @if (!Model.History.Any())
+            {
+                <li class="empty-row">No spray history yet.</li>
+            }
+            else
+            {
+                @foreach (var item in Model.History)
+                {
+                    <li>
+                        <span>@Html.LocalTime(item.Time, "datetime")</span>
+                        <em>@item.Type</em>
+                        <span class="check">✓</span>
+                    </li>
+                }
+            }
+        </ul>
+    </div>
+
+    @await Html.PartialAsync("_NavBar", "Monitoring")
+</div>

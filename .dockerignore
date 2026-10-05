@@ -1,0 +1,16 @@
+bin/
+obj/
+tests/
+.git/
+.vs/
+.vscode/
+.env
+*.md
+*.user
+*.suo
+**/node_modules
+*.db
+*.db-shm
+*.db-wal
+data/
+logs/

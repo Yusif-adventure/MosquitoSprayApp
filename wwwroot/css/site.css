@@ -30,7 +30,7 @@ html, body {
 }
 
 body {
-    min-height: 100vh;
+    min-height: 100dvh;
     line-height: 1.55;
 }
 
@@ -40,7 +40,7 @@ button, input {
 
 .page-shell {
     width: 100%;
-    min-height: 100vh;
+    min-height: 100dvh;
     padding: 0;
     display: flex;
     justify-content: center;
@@ -100,10 +100,6 @@ button, input {
     text-align: center;
 }
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-shadow: 0 1px 2px rgba(19, 66, 70, 0.35);
 .brand-circle {
     width: 160px;
     height: 160px;
@@ -117,11 +113,7 @@ button, input {
     justify-content: center;
 }
 
-    font-size: 1.65rem;
-    font-size: 4rem;
-    letter-spacing: 0;
-    line-height: 1.05;
-}
+
 
 .welcome-hero h1 {
     margin: 0;
@@ -909,7 +901,7 @@ button, input {
 
 .intro-page {
     width: 100%;
-    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -919,7 +911,7 @@ button, input {
 
 .intro-device-shell {
     width: min(100%, 370px);
-    min-height: min(760px, calc(100vh - 48px));
+    min-height: min(760px, calc(100dvh - 48px));
     background: linear-gradient(180deg, #0f4a3d 0%, #0b4338 34%, #0b3d34 100%);
     border-radius: 30px;
     box-shadow: 0 24px 55px rgba(11, 46, 39, 0.18);
@@ -1200,7 +1192,7 @@ button, input {
 
 .login-shell {
     width: min(100%, 430px);
-    min-height: calc(100vh - 40px);
+    min-height: calc(100dvh - 40px);
     margin: 0 auto;
     padding-bottom: 26px;
     background: #fff;
@@ -1491,7 +1483,7 @@ button, input {
 
 .dashboard-shell {
     width: min(100%, 440px);
-    height: 100vh;
+    height: 100dvh;
     min-height: 640px;
     margin: 0 auto;
     background: #eff4f1;
@@ -1509,7 +1501,7 @@ button, input {
 
 .mobile-shell {
     width: min(100%, 440px);
-    min-height: 100vh;
+    min-height: 100dvh;
     margin: 0 auto;
     padding-bottom: 76px;
     background: #f5f8f6;
@@ -1518,7 +1510,7 @@ button, input {
 }
 
 .mobile-shell:not(.dashboard-shell) {
-    min-height: 100vh;
+    min-height: 100dvh;
 }
 
 .empty-row,
@@ -1834,14 +1826,14 @@ button, input {
 
 @media (max-width: 640px) {
     .page-shell {
-        min-height: 100vh;
+        min-height: 100dvh;
         padding: 0;
     }
 
     .dashboard-shell {
         width: 100%;
-        min-height: 100vh;
-        height: 100vh;
+        min-height: 100dvh;
+        height: 100dvh;
         border-radius: 0;
         padding-bottom: 88px;
     }
@@ -1883,7 +1875,7 @@ button, input {
 
 .manual-spray-shell {
     width: min(100%, 430px);
-    height: calc(100vh - 40px);
+    height: calc(100dvh - 40px);
     min-height: 500px;
     margin: 0 auto;
     background: #fff;
@@ -2162,7 +2154,7 @@ button, input {
 @media (max-width: 640px) {
     .manual-spray-shell {
         width: 100%;
-        height: 100vh;
+        height: 100dvh;
         min-height: 480px;
     }
 }
@@ -3647,11 +3639,121 @@ html[data-theme="dark"] .action-box:first-child {
 }
 
 @media (max-width: 640px) {
-    .page-shell {
-        padding: 20px 14px;
-    }
 
     .app-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* Google Auth Button Styles */
+.auth-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+    color: var(--text-soft);
+}
+.auth-divider::before, .auth-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--line);
+}
+.auth-divider span {
+    padding: 0 10px;
+    font-size: 0.9rem;
+}
+.google-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--white);
+    color: var(--text-main);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    width: 100%;
+}
+.google-btn:hover {
+    background-color: #f8f9f8;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+.external-auth-form {
+    margin-top: 10px;
+}
+
+/* ── Flash messages (TempData["Info"] / TempData["Error"]) ─────────────────── */
+.flash {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    width: min(92vw, 420px);
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    line-height: 1.35;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+.flash-info {
+    background: #e8f5ec;
+    color: #1d5a33;
+    border: 1px solid #b7dcc4;
+}
+.flash-error {
+    background: #fdeceb;
+    color: #8a1f17;
+    border: 1px solid #f2b8b3;
+}
+
+/* Small text-style button used for secondary in-row actions */
+.link-button {
+    background: none;
+    border: 0;
+    padding: 4px 6px;
+    color: inherit;
+    font: inherit;
+    font-size: 0.85rem;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.make-primary-form {
+    margin-right: 4px;
+}
+
+.notice-item.is-read {
+    opacity: 0.6;
+}
+
+.resend-form {
+    margin: 16px 0;
+    text-align: center;
+}
+.resend-form p {
+    margin: 0 0 8px;
+    color: var(--text-soft);
+}
+
+/* One-time sprayer key reveal */
+.key-reveal dl {
+    margin: 8px 0 0;
+}
+.key-reveal dt {
+    font-weight: 600;
+    margin-top: 6px;
+}
+.key-reveal dd {
+    margin: 2px 0 0;
+}
+.key-reveal code {
+    display: block;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.06);
+    word-break: break-all;
+    user-select: all;
 }

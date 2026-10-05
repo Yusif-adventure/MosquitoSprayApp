@@ -5,9 +5,16 @@
 
 <div class="page-card mobile-shell">
     <div class="screen-header">
-        <a asp-action="Dashboard" class="header-left back-link" aria-label="Back to dashboard">←</a>
+        <a asp-action="Dashboard" asp-controller="Home" class="header-left back-link" aria-label="Back to dashboard">←</a>
         <div class="header-center title">Notifications</div>
-        <div class="header-right"></div>
+        <div class="header-right">
+            @if (Model.Any(n => !n.IsRead))
+            {
+                <form asp-action="MarkAllRead" asp-controller="Home" method="post">
+                    <button type="submit" class="link-button" title="Mark all notifications as read">Mark read</button>
+                </form>
+            }
+        </div>
     </div>
 
     <div class="notice-list">
@@ -22,23 +29,17 @@
         {
             @foreach (var item in Model)
             {
-                <div class="notice-item @item.Severity">
-                    <span class="notice-icon">@((item.Severity == "warning") ? "!" : (item.Severity == "success") ? "✓" :
-                                                           "i")</span>
-                        <div>
-                            <strong>@item.Title</strong>
-                            <p>@item.Message</p>
-                        </div>
-                        <small>@item.CreatedAt.ToString("ddd, h:mm tt")</small>
+                <div class="notice-item @item.SeverityCssClass @(item.IsRead ? "is-read" : "")">
+                    <span class="notice-icon">@((item.SeverityCssClass == "warning") ? "!" : (item.SeverityCssClass == "success") ? "✓" : "i")</span>
+                    <div>
+                        <strong>@item.Title</strong>
+                        <p>@item.Message</p>
                     </div>
-                }
+                    <small>@Html.LocalTime(item.CreatedAt, "datetime")</small>
+                </div>
             }
-        </div>
-
-        <div class="nav-bar compact">
-            <a asp-action="Dashboard"><span class="nav-icon" aria-hidden="true">⌂</span><span>Home</span></a>
-            <a asp-action="Schedule"><span class="nav-icon" aria-hidden="true">▣</span><span>Schedule</span></a>
-            <a asp-action="Monitoring"><span class="nav-icon" aria-hidden="true">◷</span><span>History</span></a>
-            <a asp-action="Profile"><span class="nav-icon" aria-hidden="true">⚙</span><span>Settings</span></a>
-        </div>
+        }
     </div>
+
+    @await Html.PartialAsync("_NavBar", "Dashboard")
+</div>

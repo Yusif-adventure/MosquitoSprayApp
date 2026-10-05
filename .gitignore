@@ -39,3 +39,13 @@ Thumbs.db
 # Rider / JetBrains
 .idea/
 *.iml
+
+# Local runtime state (database holds real user data and password hashes)
+data/
+*.db
+*.db-shm
+*.db-wal
+logs/
+
+# Secrets
+.env

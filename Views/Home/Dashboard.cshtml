@@ -1,31 +1,27 @@
-@model SmartMosquitoControl.Controllers.DashboardViewModel
+@model SmartMosquitoControl.Models.DashboardViewModel
 @{
     ViewData["Title"] = "Dashboard";
 }
 
 <div class="page-card mobile-shell dashboard-shell">
-    <div class="dashboard-status">
-        <span class="status-time">9:41</span>
-        <div class="status-icons" aria-hidden="true">
-            <span>◉</span>
-            <span>▣</span>
-        </div>
-    </div>
-
+    
     <div class="dashboard-topbar">
         <div class="profile-pill">
-            <span class="profile-avatar">L</span>
+            <span class="profile-avatar">@Model.UserAvatarLetter</span>
         </div>
         <div class="profile-meta">
-            <span class="welcome-line">Good evening</span>
-            <strong>@(Model.Device.Name.Split(' ')[0])</strong>
+            <span class="welcome-line">@Model.Greeting</span>
+            <strong>@Model.UserFirstName</strong>
         </div>
-        <a asp-action="Notifications" class="notification-button" aria-label="Notifications">
+        <a asp-action="Notifications" asp-controller="Home" class="notification-button" aria-label="Notifications">
             <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5" />
                 <path d="M10 20a2 2 0 0 0 4 0" />
             </svg>
-            <span class="notification-dot" aria-hidden="true"></span>
+            @if (Model.UnreadNotificationCount > 0)
+            {
+                <span class="notification-dot" aria-hidden="true"></span>
+            }
         </a>
     </div>
 
@@ -33,8 +29,10 @@
         <div class="device-card-top">
             <div class="device-badge"></div>
             <div class="device-info">
-                <div class="device-name">@Model.Device.Name</div>
-                <div class="device-status online">● @(Model.Device.IsOnline ? "Online" : "Offline")</div>
+                <div class="device-name">@(Model.Device?.Name ?? "No device linked")</div>
+                <div class="device-status @(Model.Device?.IsOnline == true ? "online" : "offline")">
+                    ● @(Model.Device?.IsOnline == true ? "Online" : "Offline")
+                </div>
             </div>
             <div class="chevron">›</div>
         </div>
@@ -53,17 +51,24 @@
     <div class="stat-grid">
         <div class="mini-stat">
             <span class="mini-label">Insecticide Level</span>
-            <strong>@Model.Device.InsecticideLevel%</strong>
+            <strong>@(Model.Device?.InsecticideLevel.ToString() ?? "--")%</strong>
         </div>
         <div class="mini-stat">
             <span class="mini-label">Next Schedule</span>
-            <strong>Today</strong>
-            <small>7:00 PM</small>
+            @if (Model.NextSchedule is not null)
+            {
+                <strong>@Html.LocalTime(Model.NextSchedule.ScheduledFor, "day")</strong>
+                <small>@Html.LocalTime(Model.NextSchedule.ScheduledFor, "time")</small>
+            }
+            else
+            {
+                <strong>None</strong>
+            }
         </div>
     </div>
 
     <div class="quick-actions">
-        <a asp-action="ManualSpray" class="action-box">
+        <a asp-action="ManualSpray" asp-controller="Devices" class="action-box">
             <span class="action-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false">
                     <g transform="rotate(-16 12 12)">
@@ -77,10 +82,5 @@
         </a>
     </div>
 
-    <div class="nav-bar">
-        <a asp-action="Dashboard" class="active"><span class="nav-icon" aria-hidden="true">⌂</span><span>Home</span></a>
-        <a asp-action="Schedule"><span class="nav-icon" aria-hidden="true">▣</span><span>Schedule</span></a>
-        <a asp-action="Monitoring"><span class="nav-icon" aria-hidden="true">◷</span><span>History</span></a>
-        <a asp-action="Profile"><span class="nav-icon" aria-hidden="true">⚙</span><span>Settings</span></a>
-    </div>
+    @await Html.PartialAsync("_NavBar", "Dashboard")
 </div>
